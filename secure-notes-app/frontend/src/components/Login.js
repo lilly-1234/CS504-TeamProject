@@ -6,6 +6,7 @@ import {
 import { useNavigate, Link } from "react-router-dom";
 import AppLogo from "../Logo/AppLogo.png";
 import "./Page.css";
+import API_BASE_URL from "../config";
 
 export default function Login({ setIsAuthenticated, setUserId }) {
   const [userName, setUserName] = useState("");
@@ -15,32 +16,36 @@ export default function Login({ setIsAuthenticated, setUserId }) {
   const navigate = useNavigate();
 
   // Handles login button click
-  const handleLoginClick = () => {
-    // Check if either field is empty
-    const hasError = !userName || !password;
-    
-    // Set error messages for each field
-    setErrors({
-      userName: !userName,
-      password: !password
-    });
+const handleLoginClick = async () => {
+  const hasError = !userName || !password;
+  setErrors({ userName: !userName, password: !password });
 
-    // Show error message if fields are incomplete
-    if (hasError) {
-      setSnackbar({ open: true, message: "Please fill in all required fields." });
-    // If no errors then login is success
-    } else {
-      setSnackbar({ open: true, message: "Login successful! Redirecting..." });
+  if (hasError) {
+    setSnackbar({ open: true, message: "Please fill in all required fields." });
+  } else {
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userName, password }),
+      });
+      const data = await response.json();
 
-      // Storing dummy data and navigate after delay
-      setTimeout(() => {
-        localStorage.setItem("user", userName);
-        setIsAuthenticated?.(true);
-        setUserId?.(userName);
-        navigate("/dashboard");
-      }, 1500);
+      if (response.ok) {
+        if (data.mfaRequired) {
+          navigate("/mfa-setup", { state: { userId: data.userId } });
+        } else {
+          setSnackbar({ open: true, message: "Login successful! Redirecting..." });
+          setTimeout(() => navigate("/dashboard"), 1500);
+        }
+      } else {
+        setSnackbar({ open: true, message: data.message });
+      }
+    } catch (error) {
+      setSnackbar({ open: true, message: "Error logging in" });
     }
-  };
+  }
+};
 
   return (
     <Box className="page-container">

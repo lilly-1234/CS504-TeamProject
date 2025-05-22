@@ -2,7 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SignupPage from './components/Signup';
 import LoginPage from './components/Login';
-//import Dashboard from './components/Dashboard';
+import MFASetup from './components/MFASetup';
+import Dashboard from './components/Dashboard';
 
 const App = () => {
   return (
@@ -13,9 +14,10 @@ const App = () => {
         
         {/* Route for the login path ("/login") which renders the Login page */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/mfa-setup" element={<MFASetup />} />
         
         {/* Future route for the dashboard — currently commented out */}
-        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   );

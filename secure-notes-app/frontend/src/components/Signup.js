@@ -6,6 +6,7 @@ import {
 import { useNavigate, Link } from "react-router-dom";
 import AppLogo from "../Logo/AppLogo.png";
 import "./Page.css";
+import API_BASE_URL from "../config";
 
 // Component for Signup page
 export default function Signup() {
@@ -17,27 +18,37 @@ export default function Signup() {
 
   const navigate = useNavigate(); // For redirecting to login after signup
 
-  // Handles signup button click
-  const handleSignupClick = () => {
-    
-    // Check if either field is empty
+
+  const handleSignupClick = async () => {
     const hasError = !userName || !password || password !== confirmPassword;
-    
-    // Set error messages for each field
+
     setErrors({
       userName: !userName,
       password: !password,
-      confirmPassword: !confirmPassword || password !== confirmPassword
+      confirmPassword: !confirmPassword || password !== confirmPassword,
     });
 
-    // Show error message if fields are incomplete
     if (hasError) {
       setSnackbar({ open: true, message: "Please fill in all fields correctly." });
     } else {
-      setSnackbar({ open: true, message: "Signup success! Redirecting to login..." });
-      
-      //Delay before navigation
-      setTimeout(() => navigate("/login"), 1500);
+      try {
+        const response = await fetch(`${API_BASE_URL}/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: userName, email: userName, password }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          setSnackbar({ open: true, message: "Signup successful! Redirecting to login..." });
+          setTimeout(() => navigate("/dashboard"), 1000);
+        } else {
+          setSnackbar({ open: true, message: data.message });
+        }
+      } catch (error) {
+        setSnackbar({ open: true, message: "Error signing up" });
+        console.log(error)
+      }
     }
   };
 

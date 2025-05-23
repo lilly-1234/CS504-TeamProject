@@ -1,52 +1,49 @@
-const authRoutes = require('./routes/authRoutes');
-const express = require('express');
-const cors = require('cors');
-const connectDB = require('./dbconnection'); // Bring MongoDB connection function from db.js
+// Load environment variables from .env file
 require('dotenv').config();
-<<<<<<< HEAD
-=======
-const notesRoutes = require("./routes/notesRoutes");
->>>>>>> f48bc3c (2FA added)
 
-const app = express();
+// Import necessary modules
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const noteRoutes = require('./routes/notes');
+
+// Initialize Express app
+const app = express(); // This must come before app.use
 
 // Middleware
-const domain = process.env.CODESPACE_NAME
-  ? `https://${process.env.CODESPACE_NAME}-3000.app.github.dev` // Use Codespace URL for frontend
-  : 'http://localhost:3000'; // Default to localhost for local development
+app.use(bodyParser.json()); // Parses incoming JSON requests
+app.use(cors()); // Enables CORS for requests from different domains
 
-// CORS configuration
-const corsOptions = {
-<<<<<<< HEAD
-  origin: domain,  // Allow requests from frontend running in GitHub Codespace
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type'],
-};
+// Mounting route handlers
+app.use('/api', authRoutes);       // Auth routes prefixed with /api
+app.use('/api/notes', noteRoutes); // Notes CRUD routes prefixed with /api/notes
 
-app.use(cors(corsOptions)); // Apply CORS middleware
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/secure-notes', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.error(' MongoDB connection error:', err));
 
-app.use(express.json());
-=======
-  origin: ['http://localhost:3000'], //domain,  // Allow requests from frontend running in GitHub Codespace
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: '*',//['Content-Type'],
-};
-
-app.use(cors(corsOptions)); // Apply CORS middleware
-app.use(express.json());
-
->>>>>>> f48bc3c (2FA added)
-connectDB()
-
-// Routes
-app.use('/api/auth', authRoutes);
-<<<<<<< HEAD
-=======
-app.use("/api/notes", notesRoutes); 
->>>>>>> f48bc3c (2FA added)
-
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Basic route to confirm backend is running
+app.get('/', (req, res) => {
+  console.log('Backend is running');
+  res.send('API is running with MongoDB!');
 });
+
+// Debugging route to verify .env variables are loaded
+app.get('/env-check', (req, res) => {
+  res.json({
+    JWT_SECRET: process.env.JWT_SECRET ? 'Loaded' : 'Missing',
+    MONGO_URI: process.env.MONGO_URI ? 'Loaded' : 'Missing'
+  });
+});
+
+//Start the Express server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

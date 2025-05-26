@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 const Dashboard = ({setIsAuthenticated}) => {
+  const API_BASE = process.env.REACT_APP_API_URL;
   // State variables for managing notes, search and user
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState('');
@@ -66,7 +67,7 @@ const Dashboard = ({setIsAuthenticated}) => {
     // Fetching the notes from the backend
     const fetchNotes = async () => {
       try {
-        const res = await fetch('/api/notes', {
+        const res = await fetch(`${API_BASE}/api/notes`, {
           headers: { "Authorization": `Bearer ${token}` },
         });
         if (res.status === 403) { // If The token is missing, invalid, or expired
@@ -106,7 +107,7 @@ const Dashboard = ({setIsAuthenticated}) => {
 
     try {
       // Sends the note to the backend using the fetch() API
-      const res = await fetch(`/api/notes${editNoteId ? `/${editNoteId}` : ''}`, {
+      const res = await fetch(`${API_BASE}/api/notes${editNoteId ? `/${editNoteId}` : ''}`, {
         method: editNoteId ? 'PUT' : 'POST',
         headers: {
           "Content-Type": "application/json",
@@ -151,7 +152,7 @@ const Dashboard = ({setIsAuthenticated}) => {
   // Function to remove the note
   const handleDelete = async (noteId) => {
     try {
-      const res = await fetch(`/api/notes/${noteId}`, {
+      const res = await fetch(`${API_BASE}/api/notes/${noteId}`, {
         method: 'DELETE',
         headers: { "Authorization": `Bearer ${token}` },
       });

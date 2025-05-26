@@ -75,7 +75,7 @@ export default function App() {
             )
           }
         />
-        <Route path="/mfa-setup" element={<MFAsetup />} />
+        <Route path="/mfa-setup" element={<MFAsetup  />} />
         
         {/* Catches unknown routes and sends the user either to the dashboard (if they’re logged in) or the login page */}
         <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />

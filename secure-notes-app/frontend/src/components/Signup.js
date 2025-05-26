@@ -9,6 +9,8 @@ import "./Page.css";
 
 // Component for signup
 export default function Signup() {
+  const API_BASE = process.env.REACT_APP_API_URL;
+
   // State hooks for username, password, confirm password, MfA Token, and QR code
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +44,7 @@ export default function Signup() {
 
     try {
       // Send signup request to backend
-      const res = await fetch('/api/signup', {
+      const res = await fetch(`${API_BASE}/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName, password })
@@ -71,7 +73,7 @@ export default function Signup() {
 
     try {
       // Send MFA code to backend for verification
-      const res = await fetch('/api/verify-mfa-setup', {
+      const res = await fetch(`${API_BASE}/api/verify-mfa-setup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName, token })
@@ -81,7 +83,7 @@ export default function Signup() {
 
       if (result.verified) {
         setSnackbar({ open: true, message: "MFA Verified. Redirecting to login..." });
-        setTimeout(() => navigate("/dashboard"), 1500); // Redirect after delay
+        setTimeout(() => navigate("/login"), 1500); // Redirect after delay
       } else {
         setSnackbar({ open: true, message: "Invalid code. Please try again" });
       }

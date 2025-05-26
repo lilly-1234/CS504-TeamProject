@@ -9,6 +9,7 @@ import "./Page.css";
 
 // Destructuring the props
 export default function Login({ setIsAuthenticated, setUserId }) {
+  const API_BASE = process.env.REACT_APP_API_URL;
   // State variables to store user inputs and steps
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +30,7 @@ export default function Login({ setIsAuthenticated, setUserId }) {
     }
 
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch(`${API_BASE}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName, password }),
@@ -55,7 +56,7 @@ export default function Login({ setIsAuthenticated, setUserId }) {
     }
 
     try {
-      const res = await fetch("/api/verify-mfa-login", {
+      const res = await fetch(`${API_BASE}/api/verify-mfa-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName, token }),

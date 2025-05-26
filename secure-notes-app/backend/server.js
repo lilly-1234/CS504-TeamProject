@@ -17,8 +17,10 @@ const app = express(); // This must come before app.use
 
 // Middleware
 app.use(bodyParser.json()); // Parses incoming JSON requests
-app.use(cors()); // Enables CORS for requests from different domains
-
+// Enables CORS for requests from different domains
+app.use(cors({
+  origin: '*'
+}));
 // Mounting route handlers
 app.use('/api', authRoutes);       // Auth routes prefixed with /api
 app.use('/api/notes', noteRoutes); // Notes CRUD routes prefixed with /api/notes

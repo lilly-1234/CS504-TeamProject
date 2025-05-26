@@ -5,6 +5,7 @@ import { Box, Typography, Button } from '@mui/material';
 
 // Component for MFA set up
 const MFAsetup = () => {
+  const API_BASE = process.env.REACT_APP_API_URL;
   const [qrCode, setQrCode] = useState(null);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const MFAsetup = () => {
     // Function to fetch QR code from backend
     const fetchQRCode = async () => {
       try {
-        const res = await fetch(`/api/resend-qr/${username}`);
+        const res = await fetch(`${API_BASE}/api/resend-qr/${username}`);
         const data = await res.json();
         // If successful, set the QR code image
         if (res.ok && data.qrCode) {

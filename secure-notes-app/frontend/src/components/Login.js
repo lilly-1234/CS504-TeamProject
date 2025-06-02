@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box, Container, Card, CardContent, Typography, FormControl,
   TextField, FormHelperText, CardActions, Button, Stack, Snackbar
 } from '@mui/material';
-import { useNavigate , Link} from "react-router-dom";
+import { useNavigate, Link} from "react-router-dom";
 import AppLogo from "../Logo/AppLogo.png";
 import "./Page.css";
 
@@ -18,7 +18,7 @@ export default function Login({ setIsAuthenticated, setUserId }) {
   const [errors, setErrors] = useState({ userName: false, password: false, token: false });
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const navigate = useNavigate(); // Hook to navigate after login
-  
+
   // Handles the initial login step (username + password)
   const handleLoginClick = async () => {
     // Set errors if fields are empty
@@ -30,23 +30,63 @@ export default function Login({ setIsAuthenticated, setUserId }) {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/login`, {
+      // Step 1: Validate username and password
+      const loginRes = await fetch(`${API_BASE}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: userName, password }),
       });
 
-      const data = await res.json();
-      if (data.success) {
-        setStep(2); // Move to MFA step if login successful
-      } else {
+      const loginData = await loginRes.json();
+      if (!loginData.success) {
         setSnackbar({ open: true, message: "Invalid username or password" });
+        return;
       }
+
+      // Step 2: Check if a valid mfaToken is already stored
+      const mfaToken = localStorage.getItem("mfaToken");
+      if (mfaToken) {
+        const validateRes = await fetch(`${API_BASE}/api/validate-mfa`, {
+          headers: { "x-mfa-token": mfaToken },
+        });
+        const validateData = await validateRes.json();
+
+        if (validateData.valid) {
+          // Step 3: If MFA token is valid, skip MFA step and get new access token
+          const skipRes = await fetch(`${API_BASE}/api/skip-mfa-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: userName, password, mfaToken }),
+          });
+
+          const skipData = await skipRes.json();
+          if (skipData.verified && skipData.token) {
+            localStorage.setItem("token", skipData.token);
+            localStorage.setItem("user", userName);
+
+            setIsAuthenticated?.(true);
+            setUserId?.(userName);
+            navigate("/dashboard");
+            return;
+          } else {
+            // If MFA token is rejected, fall back to manual MFA step
+            localStorage.removeItem("mfaToken");
+          }
+        } else {
+          // Remove expired or invalid token
+          localStorage.removeItem("mfaToken");
+        }
+      }
+
+      // Step 4: No valid mfaToken — move to step 2 for manual TOTP entry
+      setStep(2);
+
     } catch (err) {
+      console.error("Login error:", err);
       setSnackbar({ open: true, message: "Server error during login" });
     }
   };
-  
+
   // Handles the MFA token verification step
   const handleVerifyToken = async () => {
     if (!token) {
@@ -63,14 +103,14 @@ export default function Login({ setIsAuthenticated, setUserId }) {
       });
 
       const result = await res.json();
-      if (result.verified && result.token) {
-        // Save JWT and user info in localStorage
-        localStorage.setItem("token", result.token);
+      if (result.verified && result.token && result.mfaToken) {
+        localStorage.setItem("token", result.token); // Store Access tiken
+        localStorage.setItem("mfaToken", result.mfaToken); // store MFA session token 
         localStorage.setItem("user", userName);
 
-        setIsAuthenticated?.(true); // Update auth state in parent component (App.js)
-        setUserId?.(userName); // Set user ID
-        navigate("/dashboard");  // Redirect to dashboard
+        setIsAuthenticated?.(true);
+        setUserId?.(userName);
+        navigate("/dashboard");
       } else {
         setSnackbar({ open: true, message: "Invalid MFA code" });
       }
@@ -78,11 +118,41 @@ export default function Login({ setIsAuthenticated, setUserId }) {
       setSnackbar({ open: true, message: "Error verifying MFA" });
     }
   };
-  
+
   // Function to handle Close snackbar message
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
+
+  useEffect(() => {
+    // Retrieve stored MFA session token and username from localStorage
+    const mfaToken = localStorage.getItem("mfaToken");
+    const user = localStorage.getItem("user");
+    
+    // Proceed only if both the MFA token and user exist in localStorage
+    if (mfaToken && user) {
+      // Send request to the backend to validate the MFA session token
+      fetch(`${API_BASE}/api/validate-mfa`, {
+        headers: { "x-mfa-token": mfaToken }
+      })
+        .then(res => res.json())
+        .then(data => {
+          // If the token is still valid, skip MFA step by staying on step 1
+          if (data.valid) {
+            setStep(1);
+          } else {
+            // If token is invalid or expired, remove it from storage
+            localStorage.removeItem("mfaToken");
+          }
+        })
+        
+        // If there's a network/server error, also clear the MFA token to avoid broken logic
+        .catch(() => {
+          localStorage.removeItem("mfaToken");
+        });
+    }
+  }, []);
+
 
   return (
     <Box className="page-container">
@@ -141,7 +211,7 @@ export default function Login({ setIsAuthenticated, setUserId }) {
           </Box>
         </Card>
       </Container>
-      
+
       {/* Snackbar for user messages */}
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

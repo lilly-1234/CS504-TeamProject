@@ -37,7 +37,8 @@ const Dashboard = ({setIsAuthenticated}) => {
         const now = Date.now();
         // If Token is expired, clear the storage and send an alert massage and redirect to login
         if (now >= exp * 1000) { 
-          localStorage.clear();
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           alert("Session expired. Please log in again");
           setIsAuthenticated(false);
           navigate('/login');
@@ -45,7 +46,8 @@ const Dashboard = ({setIsAuthenticated}) => {
           // Schedule auto logout when token will expire
           const timeout = exp * 1000 - now;
           const logoutTimer = setTimeout(() => {
-            localStorage.clear();
+            localStorage.removeItem("token");
+          localStorage.removeItem("user");
             alert("Session expired. Please log in again");
             setIsAuthenticated(false);
             navigate("/login");
@@ -55,7 +57,8 @@ const Dashboard = ({setIsAuthenticated}) => {
         }
       } catch (err) {
         console.error("Invalid token:", err);
-        localStorage.clear();
+        localStorage.removeItem("token");
+          localStorage.removeItem("user");
         setIsAuthenticated(false);
         navigate("/login");
       }
@@ -71,7 +74,8 @@ const Dashboard = ({setIsAuthenticated}) => {
           headers: { "Authorization": `Bearer ${token}` },
         });
         if (res.status === 403) { // If The token is missing, invalid, or expired
-          localStorage.clear();
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           alert("Session expired. Please log in again");
           setIsAuthenticated(false);
           navigate('/login');
@@ -88,7 +92,8 @@ const Dashboard = ({setIsAuthenticated}) => {
 
   // Logout function
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("token");
+          localStorage.removeItem("user");
     setIsAuthenticated(false);
     navigate('/login');
   };
@@ -117,7 +122,8 @@ const Dashboard = ({setIsAuthenticated}) => {
       });
 
       if (res.status === 403) { // If the token is invalid or expired, the server returns 
-        localStorage.clear();
+        localStorage.removeItem("token");
+          localStorage.removeItem("user");
         alert("Session expired. Please log in again");
         setIsAuthenticated(false);
         navigate("/login");
@@ -158,7 +164,8 @@ const Dashboard = ({setIsAuthenticated}) => {
       });
 
       if (res.status === 403) {
-        localStorage.clear();
+        localStorage.removeItem("token");
+          localStorage.removeItem("user");
         alert("Session expired. Please log in again.");
         setIsAuthenticated(false);
         navigate("/login");

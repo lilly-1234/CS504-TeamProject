@@ -1,4 +1,3 @@
-// src/pages/MFAsetup.js
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button } from '@mui/material';

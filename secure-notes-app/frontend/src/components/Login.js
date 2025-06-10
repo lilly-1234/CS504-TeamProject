@@ -104,7 +104,7 @@ export default function Login({ setIsAuthenticated, setUserId }) {
 
       const result = await res.json();
       if (result.verified && result.token && result.mfaToken) {
-        localStorage.setItem("token", result.token); // Store Access tiken
+        localStorage.setItem("token", result.token); // Store Access token
         localStorage.setItem("mfaToken", result.mfaToken); // store MFA session token 
         localStorage.setItem("user", userName);
 

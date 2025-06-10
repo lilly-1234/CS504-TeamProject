@@ -10,6 +10,8 @@ const UserSchema = new mongoose.Schema({
   
   // 'secret' field: Used for TOTP/MFA secret keys, required
   secret: { type: String, required: true }
+}, { 
+  timestamps: true // Adds createdAt and updatedAt
 });
 
 // Export the compiled model so it can be used in other files

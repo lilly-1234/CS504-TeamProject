@@ -10,8 +10,8 @@ const router = express.Router();
 // Fallback JWT secret in case it's missing in environment
 const JWT_SECRET = process.env.JWT_SECRET || 'securenotes123';
 
-const MFA_TIMEOUT = '3m';
-const ACCESS_TOKEN_EXPIRY = '2m';
+const MFA_TIMEOUT = '2m';
+const ACCESS_TOKEN_EXPIRY = '3m';
 const SALT_ROUNDS = 10;
 
 // Signup Route
